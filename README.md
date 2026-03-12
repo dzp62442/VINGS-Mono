@@ -20,25 +20,25 @@
 # Step 1. Setup Enviroment.
 
 - Our python version is 3.9.19, cuda version is 11.8 and we put our specific enviroment setup in `environment.yaml`. 
-    - Setup enviroment may take a little long time (about an hour), please be patient.
-    ```python
-    git clone --recursive https://github.com/Fudan-MAGIC-Lab/VINGS-Mono
-    cd VINGS-Mono
-    bash set_env.sh
-    ```
-    - For vio settings, you can use this branch of gtsam: https://github.com/Promethe-us/gtsam/tree/vio.
+- Setup enviroment may take a little long time (about an hour), please be patient.
+```bash
+git clone https://github.com/Fudan-MAGIC-Lab/VINGS-Mono
+cd VINGS-Mono
+git submodule update --init --recursive
+bash set_env.sh
+```
+- For vio settings, you can use this branch of gtsam: https://github.com/Promethe-us/gtsam/tree/vio.
 - Download pretrained checkpoints.
+```bash
+mkdir ckpts & cd ckpts
+wget https://huggingface.co/Promethe-us/VINGS-Mono-Checkpoints/resolve/main/droid.pth
+wget https://huggingface.co/Promethe-us/VINGS-Mono-Checkpoints/blob/main/metric_depth_vit_small_800k.pth
+mkdir lightglue & cd lightglue
+wget https://huggingface.co/Promethe-us/VINGS-Mono-Checkpoints/resolve/main/superpoint.onnx
+wget https://huggingface.co/Promethe-us/VINGS-Mono-Checkpoints/resolve/main/superpoint_lightglue.onnx
+cd ..
+(optional) wget https://huggingface.co/Promethe-us/VINGS-Mono-Checkpoints/blob/main/FastSAM-x.pt
 ```
-    mkdir ckpts & cd ckpts
-    wget https://huggingface.co/Promethe-us/VINGS-Mono-Checkpoints/resolve/main/droid.pth
-    wget https://huggingface.co/Promethe-us/VINGS-Mono-Checkpoints/blob/main/metric_depth_vit_small_800k.pth
-    mkdir lightglue & cd lightglue
-    wget https://huggingface.co/Promethe-us/VINGS-Mono-Checkpoints/resolve/main/superpoint.onnx
-    wget https://huggingface.co/Promethe-us/VINGS-Mono-Checkpoints/resolve/main/superpoint_lightglue.onnx
-    (optional) wget https://huggingface.co/Promethe-us/VINGS-Mono-Checkpoints/blob/main/FastSAM-x.pt
-```
-
-
 
 
 # Step 2. Prepare Dataset.
