@@ -96,35 +96,34 @@ find $NS/nr3d_lib -maxdepth 2 -type f | head
 - `$NS/nr3d_lib/nr3d_lib/utils.py`
 - `$NS/nr3d_lib/nr3d_lib/config.py`
 
-## 8. 创建 `waymo-prep` 环境
+## 8. 创建 `waymo-prep` 环境并安装依赖
 
 ```bash
 conda create -n waymo-prep python=3.8 -y
 conda activate waymo-prep
 ```
 
-## 9. 安装 `waymo-prep` 依赖
-### 9.1 安装 PyTorch 与 torchvision
+### 8.1 安装 PyTorch 与 torchvision
 
 ```bash
 conda activate waymo-prep
 conda install pytorch torchvision cpuonly -c pytorch -y
 ```
 
-### 9.2 安装基础 Python 包
+### 8.2 安装基础 Python 包
 
 ```bash
 pip install numpy scipy pillow tqdm imageio imagesize scikit-image psutil \
   pyyaml omegaconf addict pyparsing opencv-python-headless
 ```
 
-### 9.3 安装 Waymo 预处理核心包
+### 8.3 安装 Waymo 预处理核心包
 
 ```bash
 pip install tensorflow==2.11.0 waymo-open-dataset-tf-2-11-0
 ```
 
-## 10. 配置 `PYTHONPATH`
+### 8.4 配置 `PYTHONPATH`
 在 `waymo-prep` 环境中执行：
 
 ```bash
@@ -147,12 +146,10 @@ PY
 - 三行均返回 `ModuleSpec(...)`
 - 不返回 `None`
 
-## 11. 验证 `waymo-prep` 环境
-### 11.1 验证 Python 导入
+### 8.5 验证 `waymo-prep` 环境
+#### 8.5.1 验证 Python 导入
 
 ```bash
-conda activate waymo-prep
-export PYTHONPATH="$NS:$NS/nr3d_lib:$PYTHONPATH"
 python - <<'PY'
 import nr3d_lib.utils
 import nr3d_lib.config
@@ -161,11 +158,9 @@ print("python import ok")
 PY
 ```
 
-### 11.2 验证 TensorFlow 与 Waymo 包
+#### 8.5.2 验证 TensorFlow 与 Waymo 包
 
 ```bash
-conda activate waymo-prep
-export PYTHONPATH="$NS:$NS/nr3d_lib:$PYTHONPATH"
 python - <<'PY'
 import tensorflow as tf
 from waymo_open_dataset import dataset_pb2
@@ -178,8 +173,8 @@ PY
 - 无异常退出
 - 输出 TensorFlow 版本号
 
-## 12. 下载 Waymo 原始数据
-### 12.1 下载 NeuralSim 提供的 32 个静态场景
+## 9. 下载 Waymo 原始数据
+### 9.1 下载 NeuralSim 提供的 32 个静态场景
 
 ```bash
 conda activate waymo-prep
@@ -188,7 +183,7 @@ cd $NS/dataio/autonomous_driving/waymo
 bash download_waymo.sh waymo_static_32.lst $RAW
 ```
 
-### 12.2 只下载一个场景
+### 9.2 只下载一个场景
 
 ```bash
 conda activate waymo-prep
@@ -198,15 +193,15 @@ printf '%s\n' "$SCENE_ID" > one_scene.lst
 bash download_waymo.sh one_scene.lst $RAW
 ```
 
-### 12.3 下载结果检查
+### 9.3 下载结果检查
 
 ```bash
 find $RAW -maxdepth 1 -name '*.tfrecord' | head
 find $RAW -maxdepth 1 -name '*.tfrecord' | wc -l
 ```
 
-## 13. 运行 NeuralSim 预处理
-### 13.1 处理 32 个静态场景
+## 10. 运行 NeuralSim 预处理
+### 10.1 处理 32 个静态场景
 
 ```bash
 conda activate waymo-prep
@@ -215,7 +210,7 @@ cd $NS/dataio/autonomous_driving/waymo
 python preprocess.py --root=$RAW --out_root=$PROC -j4 --seq_list=waymo_static_32.lst
 ```
 
-### 13.2 只处理一个场景
+### 10.2 只处理一个场景
 
 ```bash
 conda activate waymo-prep
@@ -228,7 +223,7 @@ python preprocess.py --root=$RAW --out_root=$PROC -j1 --seq_list=one_scene.lst
 - 先使用 `-j1`
 - 单场景跑通后再尝试更高并行度
 
-### 13.3 预处理输出结构
+### 10.3 预处理输出结构
 
 ```text
 $PROC/<scene_id>/
@@ -242,31 +237,31 @@ $PROC/<scene_id>/
 └── scenario.pt
 ```
 
-### 13.4 输出检查
+### 10.4 输出检查
 
 ```bash
 find $PROC/$SCENE_ID/images/camera_FRONT -maxdepth 1 -type f | head
 find $PROC/$SCENE_ID/images/camera_FRONT -maxdepth 1 -type f | wc -l
 ```
 
-## 14. 转换为 VINGS 数据目录
+## 11. 转换为 VINGS 数据目录
 VINGS 当前 Waymo `vo` 只使用前视相机。
 
-### 14.1 使用软链接
+### 11.1 使用软链接
 
 ```bash
 mkdir -p $VINGS_DATA
 ln -s $PROC/$SCENE_ID/images/camera_FRONT $VINGS_DATA/color
 ```
 
-### 14.2 使用复制
+### 11.2 使用复制
 
 ```bash
 mkdir -p $VINGS_DATA/color
 cp -r $PROC/$SCENE_ID/images/camera_FRONT/* $VINGS_DATA/color/
 ```
 
-### 14.3 检查结果
+### 11.3 检查结果
 
 ```bash
 find $VINGS_DATA/color -maxdepth 1 -type f | head
@@ -283,14 +278,14 @@ $VINGS_DATA/
     └── ...
 ```
 
-## 15. 配置 VINGS
-### 15.1 复制 Waymo 模板
+## 12. 配置 VINGS
+### 12.1 复制 Waymo 模板
 
 ```bash
 cp configs/waymo/Scene01.yaml configs/waymo/my_waymo_vo.yaml
 ```
 
-### 15.2 修改关键字段
+### 12.2 修改关键字段
 
 ```yaml
 mode: 'vo'
@@ -304,7 +299,7 @@ frontend:
   weight: /path/to/VINGS-Mono/ckpts/droid.pth
 ```
 
-### 15.3 保留或写入内参
+### 12.3 保留或写入内参
 
 ```yaml
 intrinsic:
@@ -316,7 +311,7 @@ intrinsic:
   W: 1920
 ```
 
-## 16. 补齐 `looper` 配置
+## 13. 补齐 `looper` 配置
 在 `configs/waymo/my_waymo_vo.yaml` 中保留以下字段：
 
 ```yaml
@@ -340,28 +335,28 @@ ckpts/lightglue/superpoint.onnx
 ckpts/lightglue/superpoint_lightglue.onnx
 ```
 
-## 17. 运行 VINGS
+## 14. 运行 VINGS
 
 ```bash
 python scripts/run.py configs/waymo/my_waymo_vo.yaml
 ```
 
-## 18. 检查项
-### 18.1 检查数据目录
+## 15. 检查项
+### 15.1 检查数据目录
 
 ```bash
 find $VINGS_DATA/color -maxdepth 1 -type f | head
 find $VINGS_DATA/color -maxdepth 1 -type f | wc -l
 ```
 
-### 18.2 检查配置关键字段
+### 15.2 检查配置关键字段
 
 ```bash
 grep -n "module:\\|root:\\|weight:\\|lightglue_weight_dir" configs/waymo/my_waymo_vo.yaml
 ```
 
-## 19. 故障处理
-### 19.1 `nr3d_lib.utils` 无法导入
+## 16. 故障处理
+### 16.1 `nr3d_lib.utils` 无法导入
 
 执行：
 
@@ -369,16 +364,16 @@ grep -n "module:\\|root:\\|weight:\\|lightglue_weight_dir" configs/waymo/my_waym
 export PYTHONPATH="$NS:$NS/nr3d_lib:$PYTHONPATH"
 ```
 
-重新验证第 10 节和第 11 节。
+重新验证第 8 节。
 
-### 19.2 TensorFlow 与 Waymo 包无法导入
+### 16.2 TensorFlow 与 Waymo 包无法导入
 重新安装：
 
 ```bash
 pip install tensorflow==2.11.0 waymo-open-dataset-tf-2-11-0
 ```
 
-### 19.3 TensorFlow 2.11 路线失败
+### 16.3 TensorFlow 2.11 路线失败
 切换到兼容路线：
 
 ```bash
@@ -386,11 +381,11 @@ pip uninstall -y tensorflow waymo-open-dataset-tf-2-11-0
 pip install tensorflow==2.6.0 waymo-open-dataset-tf-2-6-0 protobuf==3.20.*
 ```
 
-### 19.4 `preprocess.py` 运行失败
+### 16.4 `preprocess.py` 运行失败
 检查以下项目：
 - `RAW` 目录中是否存在 `.tfrecord`
 - `SCENE_ID` 是否正确
-- 是否已完成第 11 节验证
+- 是否已完成第 8 节验证
 - 并行度是否过高
 
 建议先改为：
@@ -399,12 +394,12 @@ pip install tensorflow==2.6.0 waymo-open-dataset-tf-2-6-0 protobuf==3.20.*
 python preprocess.py --root=$RAW --out_root=$PROC -j1 --seq_list=one_scene.lst
 ```
 
-### 19.5 VINGS 启动时报回环相关错误
+### 16.5 VINGS 启动时报回环相关错误
 检查：
 - 配置中是否存在 `looper`
 - `ckpts/lightglue/` 下是否存在 ONNX 权重
 
-## 20. 不在本手册范围内
+## 17. 不在本手册范围内
 - NeuralSim 街景重建训练
 - LiDAR 训练与渲染
 - 单目深度提取
@@ -413,7 +408,7 @@ python preprocess.py --root=$RAW --out_root=$PROC -j1 --seq_list=one_scene.lst
 - Waymo 多相机联合建图
 - Waymo IMU / VIO
 
-## 21. 参考位置
+## 18. 参考位置
 - NeuralSim Waymo 说明：<https://github.com/PJLab-ADG/neuralsim/blob/main/dataio/autonomous_driving/waymo/README.md>
 - NeuralSim 下载脚本：<https://github.com/PJLab-ADG/neuralsim/blob/main/dataio/autonomous_driving/waymo/download_waymo.sh>
 - NeuralSim 预处理脚本：<https://github.com/PJLab-ADG/neuralsim/blob/main/dataio/autonomous_driving/waymo/preprocess.py>
