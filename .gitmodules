@@ -4,6 +4,7 @@
 [submodule "submodules/gtsam"]
 	path = submodules/gtsam
 	url = https://github.com/Promethe-us/gtsam
+	branch = main
 [submodule "submodules/dbaf"]
 	path = submodules/dbaf
 	url = https://github.com/Promethe-us/dbaf

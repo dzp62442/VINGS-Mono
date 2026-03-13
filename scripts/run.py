@@ -18,8 +18,6 @@ import importlib
 get_dataset = importlib.import_module(config["dataset"]["module"]).get_dataset
 from vings_utils.middleware_utils import judge_and_package, retrieve_to_tracker, datapacket_to_nerfslam
 from storage.storage_manage import StorageManager
-from loop.loop_model import LoopModel
-from metric.metric_model import Metric_Model
 import time
 from tqdm import tqdm
 if config['mode'] == 'vo_nerfslam': from frontend_vo.vio_slam import VioSLAM
@@ -41,9 +39,13 @@ class Runner:
         
         self.mapper = GaussianModel(cfg)
         
-        self.looper = LoopModel(cfg)
+        self.looper = None
+        if 'use_loop' in cfg.keys() and cfg['use_loop']:
+            from loop.loop_model import LoopModel
+            self.looper = LoopModel(cfg)
         
         if 'use_metric' in cfg.keys() and cfg['use_metric']:
+            from metric.metric_model import Metric_Model
             self.metric_predictor = Metric_Model(cfg) 
         
         if 'use_storage_manager' in cfg.keys() and cfg['use_storage_manager']:
